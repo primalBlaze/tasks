@@ -1,0 +1,183 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>PrimalBlaze.Threading</name>
+    </assembly>
+    <members>
+        <member name="T:PrimalBlaze.Threading.NamespaceDoc">
+            <summary>
+            The <see cref="N:PrimalBlaze.Threading"/> namespace contains classes which provide
+            extensions and useful enhancements for .NET's <see cref="N:System.Threading.Tasks"/>.
+            </summary>
+        </member>
+        <member name="T:PrimalBlaze.Threading.TaskCancellationOptions">
+            <summary>
+            Specifies the behavior when generating and processing the results of a cancellation which is caused
+            by the fault of a worker task supplied to <see cref="M:PrimalBlaze.Threading.Tasks.WhenAllCompleteOrOneFaults(PrimalBlaze.Threading.TaskCancellationOptions,System.Threading.CancellationToken,System.Func{System.Threading.CancellationToken,System.Threading.Tasks.Task}[])"/>.
+            </summary>
+        </member>
+        <member name="F:PrimalBlaze.Threading.TaskCancellationOptions.None">
+            <summary>
+            When no cancellation options are specified, specifies that default behavior should be used when 
+            generating a cancellation. The cancellation from a worker task will be assumed to be resulting 
+            from an attempt to cancel that Task following an antecedent fault in another worker task, and the
+            ensuing <see cref="T:System.OperationCanceledException"/> will be observed but not rethrown.
+            </summary>
+        </member>
+        <member name="F:PrimalBlaze.Threading.TaskCancellationOptions.DisableExceptionChanneling">
+            <summary>
+            Specifies that the <see cref="M:PrimalBlaze.Threading.Tasks.WhenAllCompleteOrOneFaults(PrimalBlaze.Threading.TaskCancellationOptions,System.Threading.CancellationToken,System.Func{System.Threading.CancellationToken,System.Threading.Tasks.Task}[])"/>
+            method should not suppress <see cref="T:System.OperationCanceledException"/>s which it perceives to have 
+            been caused by the cancellation of a worker task in response to the fault of another worker task.
+            </summary>
+        </member>
+        <member name="T:PrimalBlaze.Threading.Tasks">
+            <summary>
+            Contains static methods in a similar vein to the static members of <see cref="T:System.Threading.Tasks.Task"/>.
+            </summary>
+        </member>
+        <member name="M:PrimalBlaze.Threading.Tasks.WhenAllCompleteOrOneFaults(System.Threading.CancellationTokenSource,System.Threading.Tasks.Task[])">
+            <summary>
+            Creates a task that will complete when all of the <see cref="T:System.Threading.Tasks.Task"/> objects in an array have completed, or
+            when an <see cref="T:System.Exception"/> is detected as thrown from one of those Task objects. It will notify the
+            specified <paramref name="workerCancellationSource"/> if a fault occurs.
+            </summary>
+            <param name="workerCancellationSource">
+            A <see cref="T:System.Threading.CancellationTokenSource"/> which will be requested to Cancel if one of the <paramref name="workerTasks"/>
+            faults. It is expected, but not required, that the worker tasks monitor this source's <see cref="P:System.Threading.CancellationTokenSource.Token"/>.
+            </param>
+            <param name="workerTasks">
+            The <see cref="T:System.Threading.Tasks.Task"/>s to wait on for completion.
+            </param>
+            <returns>
+            A task that represents the completion of all of the supplied tasks, or the faulted state
+            of at least one of the tasks.
+            </returns>
+            <remarks>
+            The first <see cref="T:System.Exception"/>, if any, detected as thrown within any of the tasks will be rethrown.
+            
+            If a <paramref name="workerCancellationSource"/> is provided then this will be used to notify when one of the tasks
+            faults. This can be used by the calling method to cancel the other tasks. For automated cancellation of the other
+            tasks, consider using one of the overloads which accepts a taskFactories parameter, e.g.
+            <see cref="M:PrimalBlaze.Threading.Tasks.WhenAllCompleteOrOneFaults(System.Threading.CancellationToken,System.Func{System.Threading.CancellationToken,System.Threading.Tasks.Task}[])"/>.
+            </remarks>
+        </member>
+        <member name="M:PrimalBlaze.Threading.Tasks.WhenAllCompleteOrOneFaults(System.Threading.Tasks.Task[])">
+            <summary>
+            Creates a task that will complete when all of the <see cref="T:System.Threading.Tasks.Task"/> objects in an array have completed, or
+            when an <see cref="T:System.Exception"/> is detected as thrown from one of those Task objects.
+            </summary>
+            <param name="workerTasks">The <see cref="T:System.Threading.Tasks.Task"/>s to wait on for completion.</param>
+            <returns>A task that represents the completion of all of the supplied tasks, or the faulted state
+            of at least one of the tasks.</returns>
+            <remarks>
+            The first <see cref="T:System.Exception"/>, if any, detected as thrown within any of the tasks will be rethrown.
+            
+            This overload makes no attempt to notify or cancel other worker tasks if one faults. Use the
+            <see cref="M:PrimalBlaze.Threading.Tasks.WhenAllCompleteOrOneFaults(System.Threading.CancellationTokenSource,System.Threading.Tasks.Task[])"/> overload to notify a
+            specified <see cref="T:System.Threading.CancellationTokenSource"/>, or one of the overloads which accepts the taskFactories
+            parameter for automatic cancellation of other tasks.
+            </remarks>
+        </member>
+        <member name="M:PrimalBlaze.Threading.Tasks.GenerateInternalCancellationSource(System.Threading.CancellationToken)">
+            <summary>
+            Generates an internal <see cref="T:System.Threading.CancellationTokenSource"/> which will be cancelled if an external
+            <see cref="T:System.Threading.CancellationToken"/> is cancelled.
+            </summary>
+            <param name="hostCancellationToken">The external cancellation token which should trigger cancellation
+            of this source.</param>
+            <returns>The internal <see cref="T:System.Threading.CancellationTokenSource"/>.</returns>
+        </member>
+        <member name="M:PrimalBlaze.Threading.Tasks.WhenAllCompleteOrOneFaults(PrimalBlaze.Threading.TaskCancellationOptions,System.Threading.CancellationToken,System.Func{System.Threading.CancellationToken,System.Threading.Tasks.Task}[])">
+            <summary>
+            Creates a task that will complete when all of the <see cref="T:System.Threading.Tasks.Task"/> objects created by an array of factories
+            have completed, or when an <see cref="T:System.Exception"/> is detected as thrown from one of those Task objects. It 
+            uses the specified <paramref name="options"/>, and can be cancelled by the specified 
+            <paramref name="hostCancellationToken"/>.
+            </summary>
+            <param name="options">
+            Flags specifying various <see cref="T:PrimalBlaze.Threading.TaskCancellationOptions"/>.
+            </param>
+            <param name="hostCancellationToken">
+            A <see cref="T:System.Threading.CancellationToken"/> which can be used to cancel the Wait.
+            </param>
+            <param name="taskFactories">
+            An array of <see cref="T:System.Func`2"/> which generate the worker
+            <see cref="T:System.Threading.Tasks.Task"/>s which will be waited upon. Each factory method is passed an internal 
+            <see cref="T:System.Threading.CancellationToken"/> which the Task can choose to monitor to determine whether one of its peer Tasks
+            has faulted.
+            </param>
+            <returns>
+            A task that represents the completion of all of the supplied tasks, or the faulted state
+            of at least one of the tasks.
+            </returns>
+            <remarks>
+            The first <see cref="T:System.Exception"/>, if any, detected as thrown within any of the tasks will be rethrown.
+            
+            Each task produced by the <paramref name="taskFactories" /> can elect to monitor the internal 
+            <see cref="T:System.Threading.CancellationToken"/> which it is supplied. This token's <see cref="P:System.Threading.CancellationToken.IsCancellationRequested"/>
+            property will be set to <b>true</b> (<b>True</b> in VB .NET) if an exception is detected as having been
+            thrown by any of the Tasks. In this way, work need not continue in one task if another has failed.
+            
+            The exceptions thrown by worker tasks may become unobserved due to a race condition where the cancellation
+            of a peer <see cref="T:System.Threading.Tasks.Task"/> may occur before the original exception is handled, triggering an 
+            <see cref="T:System.OperationCanceledException"/> first. The default behavior is to capture the original exception
+            using <see cref="T:System.Runtime.ExceptionServices.ExceptionDispatchInfo"/>, then re-throw it in preference to the OperationCanceledException.
+            To prevent this behaviour, specify the <see cref="F:PrimalBlaze.Threading.TaskCancellationOptions.DisableExceptionChanneling"/> option.
+            </remarks>
+        </member>
+        <member name="M:PrimalBlaze.Threading.Tasks.WhenAllCompleteOrOneFaults(System.Threading.CancellationToken,System.Func{System.Threading.CancellationToken,System.Threading.Tasks.Task}[])">
+            <summary>
+            Creates a task that will complete when all of the <see cref="T:System.Threading.Tasks.Task"/> objects created by an array of factories
+            have completed, or when an <see cref="T:System.Exception"/> is detected as thrown from one of those Task objects. It 
+            can be cancelled by the specified <paramref name="hostCancellationToken"/>.
+            </summary>
+            <param name="hostCancellationToken">
+            A <see cref="T:System.Threading.CancellationToken"/> which can be used to cancel the Wait.
+            </param>
+            <param name="taskFactories">
+            An array of <see cref="T:System.Func`2"/> which generate the worker
+            <see cref="T:System.Threading.Tasks.Task"/>s which will be waited upon. Each factory method is passed an internal 
+            <see cref="T:System.Threading.CancellationToken"/> which the Task can choose to monitor to determine whether one of its peer Tasks
+            has faulted.
+            </param>
+            <returns>
+            A task that represents the completion of all of the supplied tasks, or the faulted state
+            of at least one of the tasks.
+            </returns>
+            <remarks>
+            The first <see cref="T:System.Exception"/>, if any, detected as thrown within any of the tasks will be rethrown.
+            
+            Each task produced by the <paramref name="taskFactories" /> can elect to monitor the internal 
+            <see cref="T:System.Threading.CancellationToken"/> which it is supplied. This token's <see cref="P:System.Threading.CancellationToken.IsCancellationRequested"/>
+            property will be set to <b>true</b> (<b>True</b> in VB .NET) if an exception is detected as having been
+            thrown by any of the Tasks. In this way, work need not continue in one task if another has failed.
+            
+            The exceptions thrown by worker tasks may become unobserved due to a race condition where the cancellation
+            of a peer <see cref="T:System.Threading.Tasks.Task"/> may occur before the original exception is handled, triggering an 
+            <see cref="T:System.OperationCanceledException"/> first. The default behavior is to capture the original exception
+            using <see cref="T:System.Runtime.ExceptionServices.ExceptionDispatchInfo"/>, then re-throw it in preference to the OperationCanceledException.
+            To prevent this behaviour, specify the <see cref="F:PrimalBlaze.Threading.TaskCancellationOptions.DisableExceptionChanneling"/> option
+            using the <see cref="M:PrimalBlaze.Threading.Tasks.WhenAllCompleteOrOneFaults(PrimalBlaze.Threading.TaskCancellationOptions,System.Threading.CancellationToken,System.Func{System.Threading.CancellationToken,System.Threading.Tasks.Task}[])"/>
+            overload.
+            </remarks>
+        </member>
+        <member name="M:PrimalBlaze.Threading.Tasks.WhenAllCompleteOrOneFaultsInternal(System.Collections.Generic.IEnumerable{System.Threading.Tasks.Task},System.Threading.CancellationTokenSource)">
+            <summary>
+            Creates a task that will complete when all of the <see cref="T:System.Threading.Tasks.Task"/> objects in an array have completed, or
+            when an <see cref="T:System.Exception"/> is detected as thrown from one of those Task objects. It will notify the
+            specified <paramref name="internalCts"/> if a fault occurs.
+            </summary>
+            <param name="workerTasks">
+            The <see cref="T:System.Threading.Tasks.Task"/>s to wait on for completion.
+            </param>
+            <param name="internalCts">
+            A <see cref="T:System.Threading.CancellationTokenSource"/> which will be requested to Cancel if one of the <paramref name="workerTasks"/>
+            faults.
+            </param>
+            <returns>
+            The first <see cref="T:System.Exception"/>, if any, detected as thrown within any of the tasks will be rethrown.
+            </returns>
+        </member>
+    </members>
+</doc>
